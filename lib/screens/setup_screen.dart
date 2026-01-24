@@ -7,13 +7,21 @@ import '../providers/game_provider.dart';
 class SetupScreen extends StatelessWidget {
   const SetupScreen({super.key});
 
+  // 定義統一的字體大小，方便管理
+  final double mainFontSize = 20.0;
+
   @override
   Widget build(BuildContext context) {
     final gameProvider = context.watch<GameProvider>();
     final rules = gameProvider.rules[gameProvider.playerCount]!;
 
-    // 檢查是否需要顯示派西維爾的警告
-    bool showPercivalWarning = gameProvider.selectedRoles.contains(Role.percival);
+    // 邏輯修正：只有在「有派且無壞人頭目」時才顯示警告
+    bool hasPercival = gameProvider.selectedRoles.contains(Role.percival);
+    bool hasMorgana = gameProvider.selectedRoles.contains(Role.morgana);
+    bool hasMordred = gameProvider.selectedRoles.contains(Role.mordred);
+    
+    // 顯示條件：有派西維爾 且 (沒有莫甘娜 且 沒有莫德雷德)
+    bool showPercivalWarning = hasPercival && (!hasMorgana && !hasMordred);
 
     return Scaffold(
       appBar: AppBar(title: const Text("遊戲設置")),
@@ -43,9 +51,9 @@ class SetupScreen extends StatelessWidget {
                         return Center(
                           child: Text(
                             "${index + 5} 人局",
-                            style: const TextStyle(
+                            style: TextStyle(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: mainFontSize, // (2) 字體大小統一
                               fontWeight: FontWeight.bold
                             ),
                           ),
@@ -55,28 +63,28 @@ class SetupScreen extends StatelessWidget {
                   ),
                   const Divider(color: Colors.white24),
                   
-                  // 正反方詳細陣容顯示 (這裡是你要求的修改重點)
+                  // 正反方詳細陣容顯示
                   Padding(
                     padding: const EdgeInsets.symmetric(vertical: 10.0),
                     child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start, // 讓文字從上方對齊
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         // 左邊：正義方陣容
                         Expanded(
                           child: _buildTeamDetail(
                             context, 
-                            "正義方", 
+                            "正方", // (1) 改文字
                             rules['good']!, 
                             Colors.blueAccent, 
                             isEvilTeam: false
                           ),
                         ),
-                        Container(width: 1, height: 100, color: Colors.white12), // 中間分隔線
+                        Container(width: 1, height: 100, color: Colors.white12),
                         // 右邊：邪惡方陣容
                         Expanded(
                           child: _buildTeamDetail(
                             context, 
-                            "邪惡方", 
+                            "反方", // (1) 改文字
                             rules['evil']!, 
                             Colors.redAccent, 
                             isEvilTeam: true
@@ -92,7 +100,7 @@ class SetupScreen extends StatelessWidget {
           
           const SizedBox(height: 10),
 
-          // --- 2. 角色選擇區塊 (左右分欄) ---
+          // --- 2. 角色選擇區塊 ---
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -130,8 +138,8 @@ class SetupScreen extends StatelessWidget {
             ],
           ),
 
-          // --- 3. 派西維爾警告文字 (只有勾選時才出現) ---
-          if (showPercivalWarning)
+          // --- 3. 派西維爾警告文字 (條件滿足時才出現) ---
+          if (showPercivalWarning) // (4) 邏輯修正
             Padding(
               padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
               child: Row(
@@ -150,13 +158,16 @@ class SetupScreen extends StatelessWidget {
 
           const SizedBox(height: 10),
 
-          // --- 4. 湖中女神 (7人以上才出現) ---
+          // --- 4. 湖中女神 ---
           if (gameProvider.playerCount >= 7) ...[
              SwitchListTile(
-               title: const Text("加入「湖中女神」"),
+               title: Text(
+                 "加入「湖中女神」",
+                 style: TextStyle(fontSize: mainFontSize, color: Colors.white), // (5) 字體大小統一
+               ),
                value: gameProvider.hasLakeLady,
                activeColor: Colors.amber,
-               contentPadding: EdgeInsets.zero,
+               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
                onChanged: (val) => gameProvider.toggleLakeLady(val),
              ),
              const SizedBox(height: 10),
@@ -172,6 +183,7 @@ class SetupScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
+                // 如果警告還在，禁止開始 (或者你可以選擇只給警告但不禁止，這邊先做驗證)
                 String? error = gameProvider.validateSetup();
                 if (error != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -179,8 +191,12 @@ class SetupScreen extends StatelessWidget {
                   );
                 } else {
                   gameProvider.assignRoles();
+                  
+                  // TODO: 跳轉到下一個「角色分配」畫面
+                  // Navigator.push(context, MaterialPageRoute(builder: (_) => const RoleAssignmentScreen()));
+                  
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("分配完成！"), backgroundColor: Colors.green),
+                    const SnackBar(content: Text("分配完成！準備發牌..."), backgroundColor: Colors.green),
                   );
                 }
               },
@@ -198,7 +214,6 @@ class SetupScreen extends StatelessWidget {
     final gameProvider = context.watch<GameProvider>();
     final selectedRoles = gameProvider.selectedRoles;
 
-    // 1. 找出該陣營已選的特殊角色
     List<Role> specialRoles = [];
     if (isEvilTeam) {
       specialRoles = selectedRoles.where((r) => 
@@ -210,39 +225,32 @@ class SetupScreen extends StatelessWidget {
       ).toList();
     }
 
-    // 2. 計算剩餘的「填充角色」(忠臣 或 爪牙)
-    // 壞人固定有刺客(1)，好人固定有梅林(1)
     int fixedRoleCount = 1; 
     int fillerCount = totalCount - fixedRoleCount - specialRoles.length;
-    
-    // 防止變成負數的保護措施
     if (fillerCount < 0) fillerCount = 0;
 
     return Column(
       children: [
+        // (1) 格式修改：正方：5人
         Text(
-          "$totalCount $label",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: color),
+          "$label：$totalCount人",
+          style: TextStyle(fontSize: mainFontSize, fontWeight: FontWeight.bold, color: color),
         ),
         const SizedBox(height: 8),
-        // 顯示列表
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // 固定必帶角色
-            Text(isEvilTeam ? "刺客 x 1" : "梅林 x 1", style: TextStyle(color: Colors.white70, fontSize: 14)),
+            Text(isEvilTeam ? "刺客 x 1" : "梅林 x 1", style: const TextStyle(color: Colors.white, fontSize: 14)), // (3) 改成白色
             
-            // 特殊角色列表
             ...specialRoles.map((role) => Text(
               "${_getRoleName(role)} x 1",
-              style: TextStyle(color: color.withOpacity(0.9), fontSize: 14, fontWeight: FontWeight.w500),
+              style: const TextStyle(color: Colors.white, fontSize: 14), // (3) 改成白色
             )),
 
-            // 填充角色 (忠臣/爪牙)
             if (fillerCount > 0)
               Text(
                 "${isEvilTeam ? '莫德雷德的爪牙' : '亞瑟的忠臣'} x $fillerCount",
-                style: const TextStyle(color: Colors.white70, fontSize: 14),
+                style: const TextStyle(color: Colors.white, fontSize: 14), // (3) 改成白色
               ),
           ],
         )
@@ -250,7 +258,6 @@ class SetupScreen extends StatelessWidget {
     );
   }
 
-  // 將 Enum 轉為中文名稱的輔助函數
   String _getRoleName(Role role) {
     switch (role) {
       case Role.merlin: return "梅林";
