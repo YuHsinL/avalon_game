@@ -1,3 +1,4 @@
+import 'role_assignment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -183,20 +184,19 @@ class SetupScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
-                // 如果警告還在，禁止開始 (或者你可以選擇只給警告但不禁止，這邊先做驗證)
                 String? error = gameProvider.validateSetup();
                 if (error != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(content: Text(error), backgroundColor: Colors.red),
                   );
                 } else {
+                  // 1. 分配角色 (後端邏輯)
                   gameProvider.assignRoles();
-                  
-                  // TODO: 跳轉到下一個「角色分配」畫面
-                  // Navigator.push(context, MaterialPageRoute(builder: (_) => const RoleAssignmentScreen()));
-                  
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text("分配完成！準備發牌..."), backgroundColor: Colors.green),
+
+                  // 2. 跳轉到傳閱畫面 (前端跳轉)
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const RoleAssignmentScreen()),
                   );
                 }
               },
