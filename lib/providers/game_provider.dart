@@ -20,6 +20,27 @@ class GameProvider with ChangeNotifier {
     10: {'good': 6, 'evil': 4},
   };
 
+  // --- 新增：每一局任務需要的人數配置 ---
+  // Key: 總人數, Value: [第1局, 第2局, 第3局, 第4局, 第5局]
+  final Map<int, List<int>> questConfigs = {
+    5: [2, 3, 2, 3, 3],
+    6: [2, 3, 4, 3, 4],
+    7: [2, 3, 3, 4, 4], // *第4局通常需2張失敗票 (我們會另外處理)
+    8: [3, 4, 4, 5, 5], // *第4局需2張失敗票
+    9: [3, 4, 4, 5, 5], // *第4局需2張失敗票
+    10: [3, 4, 4, 5, 5], // *第4局需2張失敗票
+  };
+
+  // 取得目前人數對應的任務配置
+  List<int> get currentQuestConfig => questConfigs[playerCount]!;
+
+  // 判斷第幾局任務是否需要「2張失敗票」才算失敗 (通常是7人以上的第4局)
+  bool needsTwoFails(int questIndex) {
+    // questIndex 是從 0 開始 (0,1,2,3,4)
+    // 規則：7人以上，且是第4局 (index 3)
+    return playerCount >= 7 && questIndex == 3;
+  }
+
   void updatePlayerCount(int count) {
     playerCount = count;
     notifyListeners();

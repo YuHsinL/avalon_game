@@ -1,3 +1,4 @@
+import 'game_main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -250,9 +251,10 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                         ),
                         onPressed: () {
-                          // TODO: 跳轉到主畫面
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text("準備進入投票任務階段！")),
+                          // 跳轉並取代當前頁面 (防止按返回鍵回到語音頁)
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(builder: (context) => const GameMainScreen()),
                           );
                         },
                       ),
