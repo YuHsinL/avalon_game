@@ -1,3 +1,4 @@
+import 'night_phase_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/player_model.dart';
@@ -117,10 +118,11 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
         _currentIndex++;
       });
     } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("進入天黑閉眼階段..."), backgroundColor: Colors.purple),
+      // 修改這裡：直接跳轉到 NightPhaseScreen
+      Navigator.pushReplacement(
+        context, 
+        MaterialPageRoute(builder: (_) => const NightPhaseScreen())
       );
-      // Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const NightPhaseScreen()));
     }
   }
 
