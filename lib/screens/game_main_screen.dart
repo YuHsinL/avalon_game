@@ -15,6 +15,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
   // --- 遊戲狀態變數 ---
   int _currentQuestIndex = 0; // 目前進行到第幾局 (0~4)
   List<bool?> _questResults = [null, null, null, null, null]; // 紀錄5局結果
+  List<int> _questFailCounts = [0, 0, 0, 0, 0]; // (4) 新增：紀錄每一局失敗票數
   
   // 投票計數
   int _failedVoteCount = 0; 
@@ -32,8 +33,11 @@ class _GameMainScreenState extends State<GameMainScreen> {
   String _finalReason = "";
 
   // 投票過程變數
-  int _currentVoterIndex = 0;      // 現在輪到第幾位投票 (0, 1, 2...)
+  int _currentVoterIndex = 0;      // 現在輪到第幾位投票
   int _currentQuestNeededPlayers = 0; // 這一局總共需要幾個人
+  
+  // (1) 新增：暫存當前投票者的選擇 (null=未選, true=成功, false=失敗)
+  bool? _tempSelectedVote; 
 
   @override
   Widget build(BuildContext context) {
@@ -44,10 +48,10 @@ class _GameMainScreenState extends State<GameMainScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A2E), // 深色背景
       appBar: AppBar(
-        // 移除 title
         automaticallyImplyLeading: false, 
         backgroundColor: Colors.transparent,
         elevation: 0,
+        toolbarHeight: 10, // (3) 縮小 AppBar 高度，讓記分板往上
       ),
       body: Column(
         children: [
@@ -67,17 +71,20 @@ class _GameMainScreenState extends State<GameMainScreen> {
 
   Widget _buildScoreboard(List<int> config) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10),
+      // (3) 減少垂直間距
+      padding: const EdgeInsets.only(bottom: 10), 
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        crossAxisAlignment: CrossAxisAlignment.start, // 靠上對齊
         children: List.generate(5, (index) {
           Color color = Colors.grey;
           IconData? icon;
+          bool isFailed = _questResults[index] == false;
           
           if (_questResults[index] == true) {
             color = Colors.blueAccent; 
             icon = Icons.check;
-          } else if (_questResults[index] == false) {
+          } else if (isFailed) {
             color = Colors.redAccent; 
             icon = Icons.close;
           } else if (index == _currentQuestIndex && !_isGameOver) {
@@ -108,7 +115,11 @@ class _GameMainScreenState extends State<GameMainScreen> {
                 ),
               ),
               const SizedBox(height: 5),
-              Text("任務 ${index + 1}", style: const TextStyle(color: Colors.white54, fontSize: 12)),
+              // (4) 修改：如果是失敗的任務，顯示失敗票數
+              if (isFailed)
+                Text("${_questFailCounts[index]}張反對", style: const TextStyle(color: Colors.redAccent, fontSize: 12, fontWeight: FontWeight.bold))
+              else
+                Text("任務 ${index + 1}", style: const TextStyle(color: Colors.white54, fontSize: 12)),
             ],
           );
         }),
@@ -180,13 +191,14 @@ class _GameMainScreenState extends State<GameMainScreen> {
       _currentQuestNeededPlayers = neededPlayers; 
       _successVoteCount = 0;
       _failedVoteCount = 0;
+      _tempSelectedVote = null; // 重置選擇狀態
     });
   }
 
-  // --- Phase 2: 傳閱投票 (修改重點) ---
+  // --- Phase 2: 傳閱投票 (UI 重構) ---
   Widget _buildVotingScreen() {
     return Padding(
-      padding: const EdgeInsets.all(20.0),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -196,48 +208,109 @@ class _GameMainScreenState extends State<GameMainScreen> {
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           
-          const SizedBox(height: 10),
+          const SizedBox(height: 5),
           Text(
             "(共 $_currentQuestNeededPlayers 位)",
             style: const TextStyle(color: Colors.white54, fontSize: 16),
           ),
-          const SizedBox(height: 50),
+          const SizedBox(height: 20),
           
+          // 卡片區域
           Row(
             children: [
               // 成功票
               Expanded(
-                child: _buildVoteCard(
-                  title: "任務成功", 
+                child: _buildSelectableVoteCard(
+                  isSuccessCard: true,
                   imagePath: "assets/images/vote_success.jpg", 
-                  color: Colors.blue, 
-                  onTap: () => _handleVoteAttempt(isSuccessVote: true)
+                  color: Colors.blue,
                 ),
               ),
               const SizedBox(width: 20),
               
               // 失敗票
               Expanded(
-                child: _buildVoteCard(
-                  title: "任務失敗", 
+                child: _buildSelectableVoteCard(
+                  isSuccessCard: false,
                   imagePath: "assets/images/vote_fail.jpg", 
-                  color: Colors.red, 
-                  onTap: () => _handleVoteAttempt(isSuccessVote: false)
+                  color: Colors.red,
                 ),
               ),
             ],
-          )
+          ),
+          
+          const SizedBox(height: 30),
+
+          // (2) 確認按鈕
+          SizedBox(
+            width: double.infinity,
+            height: 60,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                // 沒選的時候是灰色，選了是金色
+                backgroundColor: _tempSelectedVote == null ? Colors.grey.shade800 : Colors.amber,
+                foregroundColor: _tempSelectedVote == null ? Colors.grey : Colors.black,
+              ),
+              // 沒選的時候 disable
+              onPressed: _tempSelectedVote == null ? null : _handleConfirmButtonPress,
+              child: const Text("確認投票", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            ),
+          ),
         ],
       ),
     );
   }
 
-  void _handleVoteAttempt({required bool isSuccessVote}) {
+  // (1) 新增：可選擇的卡片元件
+  Widget _buildSelectableVoteCard({required bool isSuccessCard, required String imagePath, required Color color}) {
+    // 判斷選取狀態
+    bool isSelected = _tempSelectedVote == isSuccessCard;
+    // 判斷是否變暗 (有選東西，且不是選我 -> 變暗)
+    bool isDimmed = _tempSelectedVote != null && !isSelected;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _tempSelectedVote = isSuccessCard;
+        });
+      },
+      child: AnimatedOpacity(
+        duration: const Duration(milliseconds: 200),
+        opacity: isDimmed ? 0.3 : 1.0, // 沒被選的變暗
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(15),
+            // 被選中才出現框框，平時沒有
+            border: isSelected ? Border.all(color: color, width: 4) : null,
+            boxShadow: isSelected ? [BoxShadow(color: color.withOpacity(0.5), blurRadius: 15)] : [],
+          ),
+          child: ClipRRect(
+             borderRadius: BorderRadius.circular(11), // 扣掉 border 寬度
+             child: AspectRatio(
+              aspectRatio: 5/8,
+              child: Image.asset(imagePath, fit: BoxFit.cover),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // (2) 處理確認按鈕點擊
+  void _handleConfirmButtonPress() {
+    // 防呆檢查：好人不能投失敗 (雖然都能點選，但送出時檢查)
+    // 因為我們沒有紀錄「現在是誰拿手機」(匿名傳閱)，
+    // 所以這裡「無法」阻擋好人投失敗，符合「不論好壞人都能點選」的需求。
+    // 如果你要加回「禁止好人投失敗」的功能，必須在傳閱前先選擇「現在是誰」。
+    // 依照你上一個需求「取消勾選」，這裡就是完全匿名的，所以無法檢查身份。
+    
     showDialog(
       context: context, 
+      barrierDismissible: false, // 點旁邊不能關閉
       builder: (ctx) => AlertDialog(
         backgroundColor: Colors.grey.shade900,
-        title: Text(isSuccessVote ? "確認投下成功？" : "確認投下失敗？", style: const TextStyle(color: Colors.white)),
+        title: Text(_tempSelectedVote == true ? "確認投下成功？" : "確認投下失敗？", style: const TextStyle(color: Colors.white)),
         content: const Text("送出後將無法更改。", style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
@@ -247,35 +320,12 @@ class _GameMainScreenState extends State<GameMainScreen> {
           TextButton(
             onPressed: () {
               Navigator.pop(ctx); 
-              _submitVote(isSuccessVote);
+              _submitVote(_tempSelectedVote!);
             }, 
             child: const Text("確認", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18))
           ),
         ],
       )
-    );
-  }
-
-  Widget _buildVoteCard({required String title, required String imagePath, required Color color, required VoidCallback onTap}) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        children: [
-          AspectRatio(
-            aspectRatio: 5/8,
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: color, width: 3),
-                image: DecorationImage(image: AssetImage(imagePath), fit: BoxFit.cover),
-              ),
-            ),
-          ),
-          // (4) 修改：移除下方的 Text
-          // const SizedBox(height: 10),
-          // Text(title, ...),
-        ],
-      ),
     );
   }
 
@@ -286,6 +336,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
     if (_currentVoterIndex < _currentQuestNeededPlayers - 1) {
       setState(() {
         _currentVoterIndex++;
+        _tempSelectedVote = null; // 重置選擇
       });
     } else {
       _calculateResult();
@@ -302,6 +353,9 @@ class _GameMainScreenState extends State<GameMainScreen> {
     } else {
       isFail = _failedVoteCount >= 1; 
     }
+    
+    // (4) 紀錄這一局的失敗票數
+    _questFailCounts[_currentQuestIndex] = _failedVoteCount;
 
     setState(() {
       _questResults[_currentQuestIndex] = !isFail;
