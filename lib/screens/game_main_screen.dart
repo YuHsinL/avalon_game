@@ -44,10 +44,10 @@ class _GameMainScreenState extends State<GameMainScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A2E), // 深色背景
       appBar: AppBar(
-        // (3) 修改：移除 title
+        // 移除 title
         automaticallyImplyLeading: false, 
         backgroundColor: Colors.transparent,
-        elevation: 0, // 移除陰影
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -67,7 +67,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
 
   Widget _buildScoreboard(List<int> config) {
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: 10), // 稍微減少 padding
+      padding: const EdgeInsets.symmetric(vertical: 10),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: List.generate(5, (index) {
@@ -190,15 +190,10 @@ class _GameMainScreenState extends State<GameMainScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // (1) 修改：移除手指 Icon
-          // const Icon(Icons.touch_app, size: 60, color: Colors.amber),
-          // const SizedBox(height: 20),
-          
-          // (2) 修改：縮小字體並放在同一行
           Text(
             "請將手機交給出任務的第 ${_currentVoterIndex + 1} 位玩家",
             textAlign: TextAlign.center,
-            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white), // 字體改小到 22
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           
           const SizedBox(height: 10),
@@ -206,7 +201,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
             "(共 $_currentQuestNeededPlayers 位)",
             style: const TextStyle(color: Colors.white54, fontSize: 16),
           ),
-          const SizedBox(height: 50), // 增加一點間距
+          const SizedBox(height: 50),
           
           Row(
             children: [
@@ -276,8 +271,9 @@ class _GameMainScreenState extends State<GameMainScreen> {
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Text(title, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: color)),
+          // (4) 修改：移除下方的 Text
+          // const SizedBox(height: 10),
+          // Text(title, ...),
         ],
       ),
     );

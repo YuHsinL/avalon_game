@@ -1,11 +1,9 @@
-import 'game_main_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../models/player_model.dart';
 import '../providers/game_provider.dart';
-// 預留給下一階段
-// import 'game_main_screen.dart';
+import 'game_main_screen.dart'; // 記得引入
 
 class NightPhaseScreen extends StatefulWidget {
   const NightPhaseScreen({super.key});
@@ -20,7 +18,7 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
   
   int _currentIndex = 0;
   bool _isPlaying = false;
-  bool _isFinished = false;
+  // bool _isFinished = false; // 不再需要用這個變數來切換介面
 
   final ScrollController _scrollController = ScrollController();
 
@@ -35,7 +33,7 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
       } else {
         setState(() {
           _isPlaying = false;
-          _isFinished = true;
+          // _isFinished = true;
           _currentIndex++; 
         });
       }
@@ -110,7 +108,7 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
 
   void _scrollToIndex(int index) {
     if (_scrollController.hasClients) {
-      double offset = index * 60.0; 
+      double offset = index * 45.0; // 稍微調整預估高度
       double target = offset - MediaQuery.of(context).size.height * 0.3;
       if (target < 0) target = 0;
       
@@ -142,21 +140,29 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
     _audioPlayer.stop();
     setState(() {
       _currentIndex = 0;
-      _isFinished = false;
+      // _isFinished = false;
       _isPlaying = false;
     });
     _scrollToIndex(0);
+  }
+
+  void _skipToGame() {
+    _audioPlayer.stop();
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const GameMainScreen()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
+      // (1) 拿掉標題：只保留 AppBar 結構但不放 title
       appBar: AppBar(
-        title: const Text("天黑請閉眼"),
-        centerTitle: true,
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
+        elevation: 0,
       ),
       body: Column(
         children: [
@@ -164,26 +170,24 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
           Expanded(
             child: ListView.builder(
               controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 20), // 增加左右邊距
+              padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 10),
               itemCount: _playlist.length,
               itemBuilder: (context, index) {
                 bool isActive = (index == _currentIndex);
                 
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.only(bottom: 20),
-                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  // (2) 行距減小：從 20 改為 10
+                  margin: const EdgeInsets.only(bottom: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 4), // 內距也稍微縮小
                   child: Text(
                     _playlist[index]['text']!,
-                    textAlign: TextAlign.left, // (1) 改為靠左
+                    textAlign: TextAlign.left,
                     style: TextStyle(
-                      // 變色：正在念(黃色)，其他(深灰)
                       color: isActive ? Colors.amber : Colors.white24,
-                      // (2) 字體大小固定不變
                       fontSize: 20, 
-                      // 只有顏色變化，字重也保持一致會更穩定，或是僅用bold凸顯
                       fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                      height: 1.5,
+                      height: 1.4,
                     ),
                   ),
                 );
@@ -191,76 +195,63 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
             ),
           ),
 
-          // --- 2. 下方控制面板 ---
+          // --- 2. 下方控制面板 (按鈕並排) ---
           Container(
             padding: const EdgeInsets.only(top: 20, bottom: 40),
             decoration: BoxDecoration(
               color: Colors.grey.shade900,
               boxShadow: const [BoxShadow(color: Colors.black, blurRadius: 20, offset: Offset(0, -10))],
             ),
-            child: Column(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 平均分配空間
               children: [
-                if (!_isFinished) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        iconSize: 40,
-                        icon: const Icon(Icons.replay, color: Colors.white54),
-                        onPressed: _restart,
-                      ),
-                      const SizedBox(width: 40),
-                      Container(
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: Colors.amber,
-                        ),
-                        child: IconButton(
-                          iconSize: 60,
-                          icon: Icon(
-                            _isPlaying ? Icons.pause : Icons.play_arrow,
-                            color: Colors.black,
-                          ),
-                          onPressed: () {
-                            if (_isPlaying) {
-                              _pause();
-                            } else {
-                              _playCurrent();
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 80),
-                    ],
-                  ),
-                ] else ...[
-                  // 結束按鈕
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: SizedBox(
-                      width: double.infinity,
-                      height: 55,
-                      child: ElevatedButton.icon(
-                        icon: const Icon(Icons.videogame_asset, color: Colors.black),
-                        label: const Text(
-                          "進入遊戲主畫面",
-                          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                        ),
-                        onPressed: () {
-                          // 跳轉並取代當前頁面 (防止按返回鍵回到語音頁)
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(builder: (context) => const GameMainScreen()),
-                          );
-                        },
-                      ),
+                // 左邊：重播按鈕
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      iconSize: 36,
+                      icon: const Icon(Icons.replay, color: Colors.white54),
+                      onPressed: _restart,
                     ),
+                    const Text("重播", style: TextStyle(color: Colors.white24, fontSize: 10)),
+                  ],
+                ),
+
+                // 中間：播放/暫停 (最大顆)
+                Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: Colors.amber,
                   ),
-                ],
+                  child: IconButton(
+                    iconSize: 50,
+                    icon: Icon(
+                      _isPlaying ? Icons.pause : Icons.play_arrow,
+                      color: Colors.black,
+                    ),
+                    onPressed: () {
+                      if (_isPlaying) {
+                        _pause();
+                      } else {
+                        _playCurrent();
+                      }
+                    },
+                  ),
+                ),
+
+                // (3) 右邊：進入遊戲 (綠色按鈕)
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      iconSize: 36,
+                      icon: const Icon(Icons.arrow_forward_ios_rounded, color: Colors.greenAccent),
+                      onPressed: _skipToGame,
+                    ),
+                    const Text("開始遊戲", style: TextStyle(color: Colors.white54, fontSize: 10)),
+                  ],
+                ),
               ],
             ),
           ),
