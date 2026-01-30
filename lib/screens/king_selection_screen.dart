@@ -3,7 +3,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/game_provider.dart';
-import 'role_assignment_screen.dart'; // 用於按鈕跳轉
+import '../widgets/game_exit_button.dart';
+import 'role_assignment_screen.dart';
 
 class KingSelectionScreen extends StatefulWidget {
   const KingSelectionScreen({super.key});
@@ -16,9 +17,7 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
   int _highlightIndex = -1; // 目前亮燈的位置 (0-based index)
   Timer? _timer;
   bool _isSpinning = true;
-  
-  // 用來儲存最終選出的國王 index，以便計算女神
-  //int _finalKingIndex = -1;
+  //int _finalKingIndex = -1; // 用來儲存最終選出的國王 index，以便計算女神
 
   @override
   void initState() {
@@ -54,7 +53,6 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
         setState(() {
           _isSpinning = false;
           _highlightIndex = targetIndex;
-          // (1) 這裡不再自動跳轉
         });
         return;
       }
@@ -89,7 +87,6 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
     final gameProvider = context.read<GameProvider>();
     final playerCount = gameProvider.playerCount;
 
-    // (2) 決定顯示的文字
     String statusText;
     if (_isSpinning) {
       statusText = "正在選出第一任國王...";
@@ -109,13 +106,15 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A2E),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: const GameExitButton(), // 返回鍵
+      ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // (2) 移除獎盃 Icon
-            // const Icon(Icons.emoji_events, size: 60, color: Colors.amber),
-            
             const SizedBox(height: 20),
             
             // 狀態文字顯示
@@ -184,7 +183,7 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
 
             const SizedBox(height: 50),
 
-            // (1) 新增：前往角色分配按鈕 (只在停止後顯示)
+            // 前往角色分配按鈕 (只在停止後顯示)
             if (!_isSpinning)
               SizedBox(
                 width: 200,

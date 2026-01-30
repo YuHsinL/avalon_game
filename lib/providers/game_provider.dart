@@ -1,7 +1,4 @@
-// lib/providers/game_provider.dart
-
 import 'package:flutter/material.dart';
-import 'dart:math';
 import '../models/player_model.dart';
 
 class GameProvider with ChangeNotifier {
@@ -10,6 +7,7 @@ class GameProvider with ChangeNotifier {
   final Set<Role> selectedRoles = {};
   List<Player> players = [];
   int? kingIndex;
+  String voicePack = 'female'; // 語音包設定：預設 'female'
 
   final Map<int, Map<String, int>> rules = {
     5: {'good': 3, 'evil': 2},
@@ -20,12 +18,12 @@ class GameProvider with ChangeNotifier {
     10: {'good': 6, 'evil': 4},
   };
 
-  // --- 新增：每一局任務需要的人數配置 ---
+  // --- 每一局任務需要的人數配置 ---
   // Key: 總人數, Value: [第1局, 第2局, 第3局, 第4局, 第5局]
   final Map<int, List<int>> questConfigs = {
     5: [2, 3, 2, 3, 3],
     6: [2, 3, 4, 3, 4],
-    7: [2, 3, 3, 4, 4], // *第4局通常需2張失敗票 (我們會另外處理)
+    7: [2, 3, 3, 4, 4], // *第4局需2張失敗票
     8: [3, 4, 4, 5, 5], // *第4局需2張失敗票
     9: [3, 4, 4, 5, 5], // *第4局需2張失敗票
     10: [3, 4, 4, 5, 5], // *第4局需2張失敗票
@@ -34,15 +32,14 @@ class GameProvider with ChangeNotifier {
   // 取得目前人數對應的任務配置
   List<int> get currentQuestConfig => questConfigs[playerCount]!;
 
-  // 判斷第幾局任務是否需要「2張失敗票」才算失敗 (通常是7人以上的第4局)
-  bool needsTwoFails(int questIndex) {
-    // questIndex 是從 0 開始 (0,1,2,3,4)
-    // 規則：7人以上，且是第4局 (index 3)
-    return playerCount >= 7 && questIndex == 3;
-  }
-
   void updatePlayerCount(int count) {
     playerCount = count;
+    notifyListeners();
+  }
+
+  // 切換語音包
+  void setVoicePack(String pack) {
+    voicePack = pack;
     notifyListeners();
   }
 
@@ -59,6 +56,11 @@ class GameProvider with ChangeNotifier {
   
   void toggleLakeLady(bool value) {
     hasLakeLady = value;
+    notifyListeners();
+  }
+
+  void setKingIndex(int index) {
+    kingIndex = index;
     notifyListeners();
   }
 
@@ -79,6 +81,12 @@ class GameProvider with ChangeNotifier {
     return [Role.assassin, Role.morgana, Role.mordred, Role.oberon, Role.minion].contains(role);
   }
 
+  // 判斷第幾局任務是否需要「2張失敗票」才算失敗 (7人以上的第4局)
+  bool needsTwoFails(int questIndex) {
+    // questIndex 是從 0 開始 (0,1,2,3,4)
+    return playerCount >= 7 && questIndex == 3;
+  }
+
   String? validateSetup() {
     if (selectedRoles.contains(Role.percival)) {
       bool hasMorgana = selectedRoles.contains(Role.morgana);
@@ -90,12 +98,7 @@ class GameProvider with ChangeNotifier {
     return null;
   }
 
-  void setKingIndex(int index) {
-    kingIndex = index;
-    notifyListeners();
-  }
-
-  // --- 重點修改：分配角色與圖片 ---
+  // --- 分配角色與圖片 ---
   void assignRoles() {
     List<Role> roleList = [];
 
@@ -174,7 +177,7 @@ class GameProvider with ChangeNotifier {
       );
     });
 
-    kingIndex = Random().nextInt(playerCount);
+    //kingIndex = Random().nextInt(playerCount);
     notifyListeners();
   }
 }

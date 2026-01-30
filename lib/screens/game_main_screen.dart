@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/player_model.dart';
 import '../providers/game_provider.dart';
+import '../widgets/game_exit_button.dart';
 import 'setup_screen.dart'; // 用於重新開始遊戲
 
 class GameMainScreen extends StatefulWidget {
@@ -43,7 +44,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
 
   // 湖中女神相關變數
   int _currentLadyIndex = 0; 
-  Set<int> _previousLadies = {}; // (1) 新增：紀錄所有當過女神的人 (包含初始持有者)
+  Set<int> _previousLadies = {}; // 紀錄所有當過女神的人 (包含初始持有者)
 
   @override
   void initState() {
@@ -52,7 +53,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
       final playerCount = context.read<GameProvider>().playerCount;
       setState(() {
         _currentLadyIndex = playerCount - 1; // 預設給最後一位玩家
-        _previousLadies.add(_currentLadyIndex); // (1) 初始持有者也算「當過」
+        _previousLadies.add(_currentLadyIndex); // 初始持有者也算「當過」
       });
     });
   }
@@ -69,15 +70,14 @@ class _GameMainScreenState extends State<GameMainScreen> {
         automaticallyImplyLeading: false, 
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 20, 
+        toolbarHeight: 50, 
+        leading: const GameExitButton(),
       ),
       body: Column(
         children: [
           // --- 1. 上方記分板 ---
           _buildScoreboard(questConfig),
-          
           const Divider(color: Colors.white24),
-
           // --- 2. 下方主要內容區 ---
           Expanded(
             child: _buildMainContent(neededPlayers),
@@ -720,7 +720,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
       padding: const EdgeInsets.all(20.0),
       child: Column(
         children: [
-          const SizedBox(height: 40),
+          const SizedBox(height: 10),
           Text(
             _finalGoodWon ? "正義方獲勝！" : "邪惡方獲勝！",
             style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: _finalGoodWon ? Colors.blue : Colors.red),

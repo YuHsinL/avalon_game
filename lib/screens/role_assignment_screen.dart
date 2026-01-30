@@ -1,8 +1,9 @@
-import 'night_phase_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../models/player_model.dart';
 import '../providers/game_provider.dart';
+import '../widgets/game_exit_button.dart';
+import 'night_phase_screen.dart';
 
 class RoleAssignmentScreen extends StatefulWidget {
   const RoleAssignmentScreen({super.key});
@@ -29,14 +30,15 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 20, 
+        toolbarHeight: 50,
+        leading: const GameExitButton(), 
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // --- (1) 上方顯示玩家編號 ---
+            // --- 上方顯示玩家編號 ---
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20.0),
               child: Text(
@@ -45,7 +47,7 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
               ),
             ),
 
-            // --- (2) 中間大卡牌區域 (修正比例 5:8) ---
+            // --- 中間大卡牌區域 (修正比例 5:8) ---
             Expanded(
               child: Center( // 讓卡片在可用空間內居中
                 child: AspectRatio(
@@ -121,7 +123,7 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
         _currentIndex++;
       });
     } else {
-      // 修改這裡：直接跳轉到 NightPhaseScreen
+      // 跳轉到 NightPhaseScreen
       Navigator.pushReplacement(
         context, 
         MaterialPageRoute(builder: (_) => const NightPhaseScreen())

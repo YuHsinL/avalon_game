@@ -1,5 +1,3 @@
-// lib/models/player_model.dart
-
 enum Role {
   merlin, percival, servant, 
   assassin, morgana, mordred, oberon, minion 

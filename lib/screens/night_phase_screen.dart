@@ -3,7 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:audioplayers/audioplayers.dart';
 import '../models/player_model.dart';
 import '../providers/game_provider.dart';
-import 'game_main_screen.dart'; // 記得引入
+import '../widgets/game_exit_button.dart';
+import 'game_main_screen.dart';
 
 class NightPhaseScreen extends StatefulWidget {
   const NightPhaseScreen({super.key});
@@ -14,12 +15,12 @@ class NightPhaseScreen extends StatefulWidget {
 
 class _NightPhaseScreenState extends State<NightPhaseScreen> {
   final AudioPlayer _audioPlayer = AudioPlayer();
+
+  // 播放清單改存 "Base Filename" (不含副檔名和 _male 後綴)
   List<Map<String, String>> _playlist = [];
   
   int _currentIndex = 0;
   bool _isPlaying = false;
-  // bool _isFinished = false; // 不再需要用這個變數來切換介面
-
   final ScrollController _scrollController = ScrollController();
 
   @override
@@ -33,7 +34,6 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
       } else {
         setState(() {
           _isPlaying = false;
-          // _isFinished = true;
           _currentIndex++; 
         });
       }
@@ -56,48 +56,62 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
     bool hasPercival = roles.contains(Role.percival);
     bool hasMorgana = roles.contains(Role.morgana);
 
-    _playlist.add({'file': '01_close_eyes.mp3', 'text': '請所有人閉上眼睛，單手握拳放在面前'});
+    _playlist.add({'file': '01_close_eyes', 'text': '請所有人閉上眼睛，單手握拳放在面前'});
 
     if (hasOberon) {
-      _playlist.add({'file': '02_except_oberon.mp3', 'text': '除了奧伯倫之外'});
+      _playlist.add({'file': '02_except_oberon', 'text': '除了奧伯倫之外'});
     }
 
-    _playlist.add({'file': '03_minions.mp3', 'text': '所有壞人舉起大拇指並睜眼相認\n5...4...3...2...1...\n所有壞人閉眼，拇指繼續舉著'});
+    _playlist.add({'file': '03_minions', 'text': '所有壞人舉起大拇指並睜眼相認\n5...4...3...2...1...\n所有壞人閉眼，拇指繼續舉著'});
 
     if (hasOberon) {
-      _playlist.add({'file': '04_oberon.mp3', 'text': '奧伯倫舉起大拇指'});
+      _playlist.add({'file': '04_oberon', 'text': '奧伯倫舉起大拇指'});
     }
 
     if (hasMordred) {
-      _playlist.add({'file': '05_mordred.mp3', 'text': '莫德雷德放下大拇指'});
+      _playlist.add({'file': '05_mordred', 'text': '莫德雷德放下大拇指'});
     }
 
-    _playlist.add({'file': '06_merlin.mp3', 'text': '梅林睜眼確認壞人\n5...4...3...2...1...\n所有壞人放下大拇指，梅林閉眼'});
+    _playlist.add({'file': '06_merlin', 'text': '梅林睜眼確認壞人\n5...4...3...2...1...\n所有壞人放下大拇指，梅林閉眼'});
 
     if (hasPercival) {
       if (hasMorgana) {
-        _playlist.add({'file': '07_merlin_morgana_up.mp3', 'text': '梅林和莫甘娜舉起大拇指\n派西維爾睜眼確認兩人'});
+        _playlist.add({'file': '07_merlin_morgana_up', 'text': '梅林和莫甘娜舉起大拇指\n派西維爾睜眼確認兩人'});
       } else {
-        _playlist.add({'file': '08_merlin_up.mp3', 'text': '梅林舉起大拇指\n派西維爾睜眼確認'});
+        _playlist.add({'file': '08_merlin_up', 'text': '梅林舉起大拇指\n派西維爾睜眼確認'});
       }
 
-      _playlist.add({'file': '09_percival_end.mp3', 'text': '5...4...3...2...1...\n派西維爾閉眼'});
+      _playlist.add({'file': '09_percival_end', 'text': '5...4...3...2...1...\n派西維爾閉眼'});
 
       if (hasMorgana) {
-        _playlist.add({'file': '10_merlin_morgana_down.mp3', 'text': '梅林和莫甘娜放下大拇指'});
+        _playlist.add({'file': '10_merlin_morgana_down', 'text': '梅林和莫甘娜放下大拇指'});
       } else {
-        _playlist.add({'file': '11_merlin_down.mp3', 'text': '梅林放下大拇指'});
+        _playlist.add({'file': '11_merlin_down', 'text': '梅林放下大拇指'});
       }
     }
 
-    _playlist.add({'file': '12_open_eyes.mp3', 'text': '所有人睜眼，遊戲開始'});
+    _playlist.add({'file': '12_open_eyes', 'text': '所有人睜眼，遊戲開始'});
   }
 
   Future<void> _playCurrent() async {
     if (_currentIndex >= _playlist.length) return;
+
+    final gameProvider = context.read<GameProvider>();
+    String baseName = _playlist[_currentIndex]['file']!;
+
+    // 動態組合檔名邏輯
+    // female (預設) -> "01_close_eyes.mp3"
+    // male -> "01_close_eyes_male.mp3"
+    String suffix = gameProvider.voicePack == 'female' ? '' : '_${gameProvider.voicePack}';
+    String fileName = "$baseName$suffix.mp3";
     
-    String fileName = _playlist[_currentIndex]['file']!;
-    await _audioPlayer.play(AssetSource('audio/$fileName'));
+    // 播放
+    try {
+      await _audioPlayer.play(AssetSource('audio/$fileName'));
+    } catch (e) {
+      // 防止找不到檔案時 Crash
+      debugPrint("播放失敗: $fileName");
+    }
     
     setState(() {
       _isPlaying = true;
@@ -108,7 +122,7 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
 
   void _scrollToIndex(int index) {
     if (_scrollController.hasClients) {
-      double offset = index * 45.0; // 稍微調整預估高度
+      double offset = index * 45.0;
       double target = offset - MediaQuery.of(context).size.height * 0.3;
       if (target < 0) target = 0;
       
@@ -140,7 +154,6 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
     _audioPlayer.stop();
     setState(() {
       _currentIndex = 0;
-      // _isFinished = false;
       _isPlaying = false;
     });
     _scrollToIndex(0);
@@ -154,16 +167,67 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
     );
   }
 
+  void _showVoiceSettings() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.grey.shade900,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (ctx) {
+        return Consumer<GameProvider>(
+          builder: (context, provider, child) {
+            return Container(
+              padding: const EdgeInsets.all(20),
+              height: 250,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("語音設定", style: TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 20),
+                  ListTile(
+                    title: const Text("女聲 (Default)", style: TextStyle(color: Colors.white)),
+                    leading: const Icon(Icons.female, color: Colors.pinkAccent),
+                    trailing: provider.voicePack == 'female' ? const Icon(Icons.check, color: Colors.amber) : null,
+                    onTap: () {
+                      provider.setVoicePack('female');
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                  ListTile(
+                    title: const Text("男聲 (Male)", style: TextStyle(color: Colors.white)),
+                    leading: const Icon(Icons.male, color: Colors.blueAccent),
+                    trailing: provider.voicePack == 'male' ? const Icon(Icons.check, color: Colors.amber) : null,
+                    onTap: () {
+                      provider.setVoicePack('male');
+                      Navigator.pop(ctx);
+                    },
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-      // (1) 拿掉標題：只保留 AppBar 結構但不放 title
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
         elevation: 0,
-        toolbarHeight: 20,
+        toolbarHeight: 50,
+        // (3) 左上角：通用返回鍵
+        leading: const GameExitButton(), 
+        // (2) 右上角：設定按鈕
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings, color: Colors.white54),
+            onPressed: _showVoiceSettings,
+          )
+        ],
       ),
       body: Column(
         children: [
@@ -178,9 +242,8 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
                 
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
-                  // (2) 行距減小：從 20 改為 10
                   margin: const EdgeInsets.only(bottom: 0),
-                  padding: const EdgeInsets.symmetric(vertical: 4), // 內距也稍微縮小
+                  padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Text(
                     _playlist[index]['text']!,
                     textAlign: TextAlign.left,
