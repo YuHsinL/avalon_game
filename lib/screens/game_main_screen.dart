@@ -69,7 +69,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
         automaticallyImplyLeading: false, 
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 10, 
+        toolbarHeight: 20, 
       ),
       body: Column(
         children: [

@@ -163,6 +163,7 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
         backgroundColor: Colors.transparent,
         automaticallyImplyLeading: false,
         elevation: 0,
+        toolbarHeight: 20,
       ),
       body: Column(
         children: [

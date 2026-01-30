@@ -25,7 +25,13 @@ class SetupScreen extends StatelessWidget {
     bool showPercivalWarning = hasPercival && (!hasMorgana && !hasMordred);
 
     return Scaffold(
-      appBar: AppBar(title: const Text("遊戲設置")),
+      appBar: AppBar(
+        //title: const Text("遊戲設置"),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        toolbarHeight: 20, 
+      ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [

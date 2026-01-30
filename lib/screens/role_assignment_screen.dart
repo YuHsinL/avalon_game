@@ -25,8 +25,11 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("身份分配"),
-        automaticallyImplyLeading: false, 
+        //title: const Text("身份分配"),
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        toolbarHeight: 20, 
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
