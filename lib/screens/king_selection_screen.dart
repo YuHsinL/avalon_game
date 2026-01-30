@@ -18,7 +18,7 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
   bool _isSpinning = true;
   
   // 用來儲存最終選出的國王 index，以便計算女神
-  int _finalKingIndex = -1;
+  //int _finalKingIndex = -1;
 
   @override
   void initState() {
@@ -34,7 +34,7 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
     
     // 1. 先決定最終結果 (隨機)
     final targetIndex = Random().nextInt(playerCount);
-    _finalKingIndex = targetIndex;
+    //_finalKingIndex = targetIndex;
     
     // 2. 計算總共要跳幾步 (轉至少 3 圈 + 到達目標的距離)
     int currentStep = 0;

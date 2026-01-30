@@ -22,7 +22,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
   int _successVoteCount = 0;
   
   // 流程控制旗標
-  bool _isSelectingTeam = true;  // 階段1: 任務準備
+  //bool _isSelectingTeam = true;  // 階段1: 任務準備
   bool _isVoting = false;        // 階段2: 投票中
   bool _isShowingResult = false; // 階段3: 顯示該局結果
   bool _isResultRevealed = false; // 階段3-2: 是否已翻牌

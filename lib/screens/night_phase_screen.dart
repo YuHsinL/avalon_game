@@ -56,13 +56,13 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
     bool hasPercival = roles.contains(Role.percival);
     bool hasMorgana = roles.contains(Role.morgana);
 
-    _playlist.add({'file': '01_close_eyes.mp3', 'text': '請所有人閉上眼睛\n單手握拳放在面前'});
+    _playlist.add({'file': '01_close_eyes.mp3', 'text': '請所有人閉上眼睛，單手握拳放在面前'});
 
     if (hasOberon) {
       _playlist.add({'file': '02_except_oberon.mp3', 'text': '除了奧伯倫之外'});
     }
 
-    _playlist.add({'file': '03_minions.mp3', 'text': '所有壞人舉起大拇指並睜眼相認\n5 4 3 2 1... 閉眼，拇指舉著'});
+    _playlist.add({'file': '03_minions.mp3', 'text': '所有壞人舉起大拇指並睜眼相認\n5...4...3...2...1...\n所有壞人閉眼，拇指繼續舉著'});
 
     if (hasOberon) {
       _playlist.add({'file': '04_oberon.mp3', 'text': '奧伯倫舉起大拇指'});
@@ -72,16 +72,16 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
       _playlist.add({'file': '05_mordred.mp3', 'text': '莫德雷德放下大拇指'});
     }
 
-    _playlist.add({'file': '06_merlin.mp3', 'text': '梅林睜眼確認壞人\n5 4 3 2 1... 壞人放下拇指，梅林閉眼'});
+    _playlist.add({'file': '06_merlin.mp3', 'text': '梅林睜眼確認壞人\n5...4...3...2...1...\n所有壞人放下大拇指，梅林閉眼'});
 
     if (hasPercival) {
       if (hasMorgana) {
         _playlist.add({'file': '07_merlin_morgana_up.mp3', 'text': '梅林和莫甘娜舉起大拇指\n派西維爾睜眼確認兩人'});
       } else {
-        _playlist.add({'file': '08_merlin_up.mp3', 'text': '梅林舉起大拇指\n派西維爾睜眼確認梅林'});
+        _playlist.add({'file': '08_merlin_up.mp3', 'text': '梅林舉起大拇指\n派西維爾睜眼確認'});
       }
 
-      _playlist.add({'file': '09_percival_end.mp3', 'text': '5 4 3 2 1... 派西維爾閉眼'});
+      _playlist.add({'file': '09_percival_end.mp3', 'text': '5...4...3...2...1...\n派西維爾閉眼'});
 
       if (hasMorgana) {
         _playlist.add({'file': '10_merlin_morgana_down.mp3', 'text': '梅林和莫甘娜放下大拇指'});
@@ -178,7 +178,7 @@ class _NightPhaseScreenState extends State<NightPhaseScreen> {
                 return AnimatedContainer(
                   duration: const Duration(milliseconds: 300),
                   // (2) 行距減小：從 20 改為 10
-                  margin: const EdgeInsets.only(bottom: 10),
+                  margin: const EdgeInsets.only(bottom: 0),
                   padding: const EdgeInsets.symmetric(vertical: 4), // 內距也稍微縮小
                   child: Text(
                     _playlist[index]['text']!,

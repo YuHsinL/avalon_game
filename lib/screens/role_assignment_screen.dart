@@ -131,7 +131,6 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        // 1. 底圖
         Image.asset(
           player.imagePath,
           fit: BoxFit.cover, // 強制填滿 5:8 的區域
@@ -139,22 +138,6 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
           height: double.infinity,
           errorBuilder: (ctx, err, stack) => _buildFallbackIdentity(player),
         ),
-
-        // 2. 皇冠疊加層 (如果是國王)
-        if (isKing)
-          Positioned(
-            top: 15,
-            right: 15,
-            child: Container(
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.7),
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.amber, width: 2),
-              ),
-              child: const Icon(Icons.emoji_events, color: Colors.amber, size: 40),
-            ),
-          ),
       ],
     );
   }

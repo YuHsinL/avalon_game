@@ -1,5 +1,4 @@
 import 'king_selection_screen.dart';
-import 'role_assignment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
@@ -52,7 +51,7 @@ class SetupScreen extends StatelessWidget {
                       children: List<Widget>.generate(6, (index) {
                         return Center(
                           child: Text(
-                            "${index + 5} 人局",
+                            "${index + 5} 人",
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: mainFontSize, // (2) 字體大小統一
@@ -75,7 +74,7 @@ class SetupScreen extends StatelessWidget {
                         Expanded(
                           child: _buildTeamDetail(
                             context, 
-                            "正方", // (1) 改文字
+                            "正義方", // (1) 改文字
                             rules['good']!, 
                             Colors.blueAccent, 
                             isEvilTeam: false
@@ -86,7 +85,7 @@ class SetupScreen extends StatelessWidget {
                         Expanded(
                           child: _buildTeamDetail(
                             context, 
-                            "反方", // (1) 改文字
+                            "邪惡方", // (1) 改文字
                             rules['evil']!, 
                             Colors.redAccent, 
                             isEvilTeam: true
