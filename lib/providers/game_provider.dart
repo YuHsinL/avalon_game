@@ -90,6 +90,11 @@ class GameProvider with ChangeNotifier {
     return null;
   }
 
+  void setKingIndex(int index) {
+    kingIndex = index;
+    notifyListeners();
+  }
+
   // --- 重點修改：分配角色與圖片 ---
   void assignRoles() {
     List<Role> roleList = [];

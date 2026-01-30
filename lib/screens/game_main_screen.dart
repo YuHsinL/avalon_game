@@ -22,10 +22,11 @@ class _GameMainScreenState extends State<GameMainScreen> {
   int _successVoteCount = 0;
   
   // 流程控制旗標
-  //bool _isSelectingTeam = true;  // 階段1: 任務準備
+  bool _isSelectingTeam = true;  // 階段1: 任務準備
   bool _isVoting = false;        // 階段2: 投票中
   bool _isShowingResult = false; // 階段3: 顯示該局結果
   bool _isResultRevealed = false; // 階段3-2: 是否已翻牌
+  bool _isLadyPhase = false;     // 階段3-3: 湖中女神階段
   bool _isAssassinPhase = false; // 階段4: 刺殺梅林
   bool _isGameOver = false;      // 階段5: 遊戲結束
 
@@ -39,6 +40,22 @@ class _GameMainScreenState extends State<GameMainScreen> {
   
   // 暫存當前投票者的選擇
   bool? _tempSelectedVote; 
+
+  // 湖中女神相關變數
+  int _currentLadyIndex = 0; 
+  Set<int> _previousLadies = {}; // (1) 新增：紀錄所有當過女神的人 (包含初始持有者)
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final playerCount = context.read<GameProvider>().playerCount;
+      setState(() {
+        _currentLadyIndex = playerCount - 1; // 預設給最後一位玩家
+        _previousLadies.add(_currentLadyIndex); // (1) 初始持有者也算「當過」
+      });
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -135,6 +152,8 @@ class _GameMainScreenState extends State<GameMainScreen> {
       return _buildGameOverScreen();
     } else if (_isAssassinPhase) {
       return _buildAssassinScreen();
+    } else if (_isLadyPhase) {
+      return _buildLadyScreen();
     } else if (_isShowingResult) {
       return _buildResultScreen();
     } else if (_isVoting) {
@@ -219,7 +238,6 @@ class _GameMainScreenState extends State<GameMainScreen> {
           
           Row(
             children: [
-              // 成功票
               Expanded(
                 child: _buildSelectableVoteCard(
                   isSuccessCard: true,
@@ -228,8 +246,6 @@ class _GameMainScreenState extends State<GameMainScreen> {
                 ),
               ),
               const SizedBox(width: 20),
-              
-              // 失敗票
               Expanded(
                 child: _buildSelectableVoteCard(
                   isSuccessCard: false,
@@ -347,19 +363,17 @@ class _GameMainScreenState extends State<GameMainScreen> {
       _questResults[_currentQuestIndex] = !isFail;
       _isVoting = false;
       _isShowingResult = true;
-      _isResultRevealed = false; // 重置翻牌狀態
+      _isResultRevealed = false; 
     });
   }
 
   Widget _buildResultScreen() {
     List<String> resultImages = [];
     if (_isResultRevealed) {
-      // 翻牌後
       for (var i = 0; i < _successVoteCount; i++) resultImages.add("assets/images/vote_success.jpg");
       for (var i = 0; i < _failedVoteCount; i++) resultImages.add("assets/images/vote_fail.jpg");
       resultImages.shuffle(); 
     } else {
-      // 翻牌前
       for (var i = 0; i < _currentQuestNeededPlayers; i++) resultImages.add("assets/images/vote_back.jpg");
     }
 
@@ -405,7 +419,6 @@ class _GameMainScreenState extends State<GameMainScreen> {
 
           const SizedBox(height: 20),
           
-          // (新增) 顯示票數文字，只在揭曉後出現
           if (_isResultRevealed)
              Row(
                mainAxisAlignment: MainAxisAlignment.center,
@@ -416,7 +429,6 @@ class _GameMainScreenState extends State<GameMainScreen> {
                ],
              )
           else 
-             // 佔位，避免版面跳動過大 (可選)
              const SizedBox(height: 26), 
           
           const SizedBox(height: 30),
@@ -456,11 +468,150 @@ class _GameMainScreenState extends State<GameMainScreen> {
         _isAssassinPhase = true;
       });
     } else {
-      setState(() {
-        _currentQuestIndex++;
-        _isShowingResult = false;
-      });
+      // 判斷是否進入湖中女神階段
+      final gameProvider = context.read<GameProvider>();
+      // 規則：有開女神 且 第2,3,4局結束後
+      if (gameProvider.hasLakeLady && (_currentQuestIndex == 1 || _currentQuestIndex == 2 || _currentQuestIndex == 3)) {
+        setState(() {
+          _isShowingResult = false;
+          _isLadyPhase = true;
+        });
+      } else {
+        setState(() {
+          _currentQuestIndex++;
+          _isShowingResult = false;
+        });
+      }
     }
+  }
+
+  // --- Phase 3.5: 湖中女神 (修正後：鎖住已當過的人) ---
+  Widget _buildLadyScreen() {
+    final players = context.read<GameProvider>().players;
+    final currentLady = players[_currentLadyIndex];
+
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
+      child: Column(
+        children: [
+          const SizedBox(height: 30),
+          const Text("湖中女神", style: TextStyle(fontSize: 32, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 10),
+          Text(
+            "請 ${currentLady.id} 號玩家持有手機", 
+            style: const TextStyle(fontSize: 20, color: Colors.white, fontWeight: FontWeight.bold)
+          ),
+          const SizedBox(height: 5),
+          const Text("選擇一名玩家查驗身份", style: TextStyle(color: Colors.white70)),
+          const SizedBox(height: 20),
+
+          Expanded(
+            child: GridView.builder(
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                childAspectRatio: 1.5,
+                crossAxisSpacing: 15,
+                mainAxisSpacing: 15,
+              ),
+              itemCount: players.length,
+              itemBuilder: (context, index) {
+                final targetPlayer = players[index];
+                
+                // (1) 判斷是否鎖住：當前持有者 OR 曾經當過女神的人
+                // 邏輯：_previousLadies 存的是玩家的 index (0-based)
+                // targetPlayer.id - 1 就是該玩家的 index
+                bool isLocked = _previousLadies.contains(targetPlayer.id - 1) || (targetPlayer.id - 1 == _currentLadyIndex);
+
+                return GestureDetector(
+                  onTap: isLocked ? null : () {
+                    _showLadyCheckDialog(targetPlayer);
+                  },
+                  child: Opacity(
+                    opacity: isLocked ? 0.3 : 1.0, // 被鎖住變暗
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white10,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.blueAccent.withOpacity(0.5), width: 2),
+                      ),
+                      child: Center(
+                        child: Text(
+                          "${targetPlayer.id}號", 
+                          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLadyCheckDialog(Player target) {
+    String alignmentText = target.team == Team.good ? "正義方 (好人)" : "邪惡方 (壞人)";
+    Color alignmentColor = target.team == Team.good ? Colors.blue : Colors.red;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.grey.shade900,
+        title: const Text("確認查驗", style: TextStyle(color: Colors.white)),
+        content: Text("確定要查驗 ${target.id} 號玩家嗎？", style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text("取消")),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (ctx2) => AlertDialog(
+                  backgroundColor: Colors.grey.shade900,
+                  content: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.remove_red_eye, size: 50, color: Colors.white),
+                      const SizedBox(height: 20),
+                      Text("${target.id} 號玩家是", style: const TextStyle(color: Colors.white, fontSize: 18)),
+                      const SizedBox(height: 10),
+                      Text(alignmentText, style: TextStyle(color: alignmentColor, fontSize: 32, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 20),
+                      const Text("女神卡將移交給該玩家", style: TextStyle(color: Colors.white54, fontSize: 14)),
+                    ],
+                  ),
+                  actions: [
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
+                        onPressed: () {
+                          Navigator.pop(ctx2);
+                          // 完成女神階段
+                          setState(() {
+                            int newLadyIndex = target.id - 1;
+                            _currentLadyIndex = newLadyIndex; 
+                            _previousLadies.add(newLadyIndex); // (1) 將新女神加入「已當過」名單
+                            _isLadyPhase = false;
+                            _currentQuestIndex++;
+                          });
+                        },
+                        child: const Text("我知道了 (進入下一局)", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                      ),
+                    )
+                  ],
+                )
+              );
+            },
+            child: const Text("確認", style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold))
+          ),
+        ],
+      )
+    );
   }
 
   // --- Phase 4: 刺殺梅林 ---

@@ -1,3 +1,4 @@
+import 'king_selection_screen.dart';
 import 'role_assignment_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
@@ -190,17 +191,17 @@ class SetupScreen extends StatelessWidget {
                     SnackBar(content: Text(error), backgroundColor: Colors.red),
                   );
                 } else {
-                  // 1. 分配角色 (後端邏輯)
+                  // 1. 分配角色
                   gameProvider.assignRoles();
 
-                  // 2. 跳轉到傳閱畫面 (前端跳轉)
+                  // 2. 改為跳轉到「選國王轉盤」
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const RoleAssignmentScreen()),
+                    MaterialPageRoute(builder: (context) => const KingSelectionScreen()),
                   );
                 }
               },
-              child: const Text("前往角色分配", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              child: const Text("下一步", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
             ),
           ),
           const SizedBox(height: 40),
