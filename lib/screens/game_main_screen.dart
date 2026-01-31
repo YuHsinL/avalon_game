@@ -68,7 +68,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
       backgroundColor: const Color(0xFF1A1A2E), // 深色背景
       appBar: AppBar(
         automaticallyImplyLeading: false, 
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
         toolbarHeight: 50, 
         leading: const GameExitButton(),

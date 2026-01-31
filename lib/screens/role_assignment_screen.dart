@@ -28,7 +28,7 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
       appBar: AppBar(
         //title: const Text("身份分配"),
         automaticallyImplyLeading: false,
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
         toolbarHeight: 40,
         leading: const GameExitButton(), 

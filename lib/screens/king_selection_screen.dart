@@ -106,7 +106,7 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF1A1A2E),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF1A1A2E),
         elevation: 0,
         leading: const GameExitButton(), // 返回鍵
       ),
