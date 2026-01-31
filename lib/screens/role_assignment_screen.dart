@@ -30,7 +30,7 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
         automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 50,
+        toolbarHeight: 40,
         leading: const GameExitButton(), 
       ),
       body: Padding(
@@ -38,53 +38,58 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+
             // --- 上方顯示玩家編號 ---
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Text(
-                "${currentPlayer.id} 號玩家",
+            Text(
+              "${currentPlayer.id} 號玩家",
                 style: const TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.amber),
-              ),
             ),
 
             // --- 中間大卡牌區域 (修正比例 5:8) ---
-            Expanded(
+            SizedBox(
+              width: double.infinity,
+              height: 500,
               child: Center( // 讓卡片在可用空間內居中
-                child: AspectRatio(
-                  aspectRatio: 5 / 8, // 強制鎖定長寬比為 5:8
-                  child: Container(
-                    width: double.infinity, // 讓它填滿 AspectRatio 給的寬度
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.5),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: ClipRRect( 
-                      borderRadius: BorderRadius.circular(20),
-                      child: _isCardFlipped
-                          ? _buildRealCardImage(currentPlayer, isKing)
-                          : Image.asset(
-                              "assets/images/identity_back.jpg",
-                              // 使用 cover 配合 5:8 的容器，可以完美填滿且不變形
-                              fit: BoxFit.cover, 
-                              errorBuilder: (ctx, err, stack) => _buildFallbackCover(),
-                            ),
+                child: Padding(
+                  // ★ 修改這裡：增加左右邊距 (原本可能是 0 或沒有 Padding)
+                  // 將數值改大 (例如 40 或 50)，卡片就會變小
+                  padding: const EdgeInsets.symmetric(horizontal: 50.0), 
+                  child: AspectRatio(
+                    aspectRatio: 5 / 8, // 強制鎖定長寬比為 5:8
+                    child: Container(
+                      width: double.infinity, // 讓它填滿 AspectRatio 給的寬度
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.5),
+                            blurRadius: 10,
+                            offset: const Offset(0, 5),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: _isCardFlipped
+                            ? _buildRealCardImage(currentPlayer, isKing)
+                            : Image.asset(
+                                "assets/images/identity_back.jpg",
+                                // 使用 cover 配合 5:8 的容器，可以完美填滿且不變形
+                                fit: BoxFit.cover,
+                                errorBuilder: (ctx, err, stack) => _buildFallbackCover(),
+                              ),
+                      ),
                     ),
                   ),
                 ),
               ),
             ),
 
-            const SizedBox(height: 30),
+            const SizedBox(height: 20),
 
             // --- 下方操作按鈕 ---
             SizedBox(
-              width: double.infinity,
+              width: 270,
               height: 60,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
@@ -109,7 +114,9 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
                 ),
               ),
             ),
+
             const SizedBox(height: 20),
+            
           ],
         ),
       ),

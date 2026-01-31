@@ -170,7 +170,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const SizedBox(height: 50),
+          //const SizedBox(height: 50),
           Text(
             "任務 ${_currentQuestIndex + 1}",
             style: const TextStyle(fontSize: 36, color: Colors.amber, fontWeight: FontWeight.bold),
@@ -188,7 +188,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
           const SizedBox(height: 60),
           
           SizedBox(
-            width: double.infinity,
+            width: 250,
             height: 60,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -221,21 +221,20 @@ class _GameMainScreenState extends State<GameMainScreen> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
+          const SizedBox(height: 30),
           Text(
             "請將手機交給出任務的第 ${_currentVoterIndex + 1} 位玩家",
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
           ),
-          
           const SizedBox(height: 5),
           Text(
             "(共 $_currentQuestNeededPlayers 位)",
             style: const TextStyle(color: Colors.white54, fontSize: 16),
           ),
-          const SizedBox(height: 20),
-          
+          const SizedBox(height: 50),
           Row(
             children: [
               Expanded(
@@ -255,11 +254,9 @@ class _GameMainScreenState extends State<GameMainScreen> {
               ),
             ],
           ),
-          
-          const SizedBox(height: 30),
-
+          const SizedBox(height: 50),
           SizedBox(
-            width: double.infinity,
+            width: 250,
             height: 60,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
@@ -379,18 +376,19 @@ class _GameMainScreenState extends State<GameMainScreen> {
 
     bool isSuccess = _questResults[_currentQuestIndex]!;
 
-    return Center(
+    return Padding(
+      padding: const EdgeInsets.all(20.0),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
         children: [
-          const SizedBox(height: 20),
+          const SizedBox(height: 30),
           
           Text(
             _isResultRevealed 
               ? (isSuccess ? "任務成功" : "任務失敗") 
               : "投票收集完成",
             style: TextStyle(
-              fontSize: 40, 
+              fontSize: 32, 
               fontWeight: FontWeight.bold, 
               color: _isResultRevealed ? (isSuccess ? Colors.blue : Colors.red) : Colors.white
             ),
@@ -431,10 +429,10 @@ class _GameMainScreenState extends State<GameMainScreen> {
           else 
              const SizedBox(height: 26), 
           
-          const SizedBox(height: 30),
+          const SizedBox(height: 50),
           
           SizedBox(
-            width: 220,
+            width: 250,
             height: 60,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: Colors.white),

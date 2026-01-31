@@ -16,7 +16,6 @@ class SetupScreen extends StatelessWidget {
     final gameProvider = context.watch<GameProvider>();
     final rules = gameProvider.rules[gameProvider.playerCount]!;
 
-    // 邏輯修正：只有在「有派且無壞人頭目」時才顯示警告
     bool hasPercival = gameProvider.selectedRoles.contains(Role.percival);
     bool hasMorgana = gameProvider.selectedRoles.contains(Role.morgana);
     bool hasMordred = gameProvider.selectedRoles.contains(Role.mordred);
@@ -25,192 +24,228 @@ class SetupScreen extends StatelessWidget {
     bool showPercivalWarning = hasPercival && (!hasMorgana && !hasMordred);
 
     return Scaffold(
+/*
       appBar: AppBar(
-        //title: const Text("遊戲設置"),
-        automaticallyImplyLeading: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
-        toolbarHeight: 20, 
+        toolbarHeight: 50,
+        //title: const Text("遊戲設置")
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // --- 1. 人數與即時陣容區塊 ---
-          Card(
-            color: Colors.white10,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Column(
-                children: [
-                  // 滾輪選擇器
-                  SizedBox(
-                    height: 120,
-                    child: CupertinoPicker(
-                      backgroundColor: Colors.transparent,
-                      itemExtent: 40,
-                      scrollController: FixedExtentScrollController(
-                        initialItem: gameProvider.playerCount - 5,
+*/
+      body: SafeArea(
+        //padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(20.0), 
+                child: Column(
+                  children: [
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "1. 選擇玩家人數",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: mainFontSize,
+                          fontWeight: FontWeight.bold
+                        )
                       ),
-                      onSelectedItemChanged: (int index) {
-                        gameProvider.updatePlayerCount(index + 5);
-                      },
-                      children: List<Widget>.generate(6, (index) {
-                        return Center(
-                          child: Text(
-                            "${index + 5} 人",
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: mainFontSize, // (2) 字體大小統一
-                              fontWeight: FontWeight.bold
-                            ),
-                          ),
-                        );
-                      }),
                     ),
-                  ),
-                  const Divider(color: Colors.white24),
-                  
-                  // 正反方詳細陣容顯示
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10.0),
-                    child: Row(
+                    const SizedBox(height: 10),
+                    // --- 1. 人數與即時陣容區塊 ---
+                    Card(
+                      color: Colors.white10,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 20.0),
+                        child: Column(
+                          children: [
+                            // 滾輪選擇器
+                            SizedBox(
+                              height: 120,
+                              child: CupertinoPicker(
+                                backgroundColor: Colors.transparent,
+                                itemExtent: 40,
+                                scrollController: FixedExtentScrollController(
+                                  initialItem: gameProvider.playerCount - 5,
+                                ),
+                                onSelectedItemChanged: (int index) {
+                                  gameProvider.updatePlayerCount(index + 5);
+                                },
+                                children: List<Widget>.generate(6, (index) {
+                                  return Center(
+                                    child: Text(
+                                      "${index + 5} 人",
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: mainFontSize, // (2) 字體大小統一
+                                        fontWeight: FontWeight.bold
+                                      ),
+                                    ),
+                                  );
+                                }),
+                              ),
+                            ),
+                            const Divider(color: Colors.white24),
+                            // 正反方詳細陣容顯示
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 10.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // 左邊：正義方陣容
+                                  Expanded(
+                                    child: _buildTeamDetail(
+                                      context, 
+                                      "正義方", // (1) 改文字
+                                      rules['good']!, 
+                                      Colors.blueAccent, 
+                                      isEvilTeam: false
+                                    ),
+                                  ),
+                                  Container(width: 1, height: 100, color: Colors.white12),
+                                  // 右邊：邪惡方陣容
+                                  Expanded(
+                                    child: _buildTeamDetail(
+                                      context, 
+                                      "邪惡方", // (1) 改文字
+                                      rules['evil']!, 
+                                      Colors.redAccent, 
+                                      isEvilTeam: true
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "2. 選擇特殊角色",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: mainFontSize,
+                          fontWeight: FontWeight.bold
+                        )
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    // --- 2. 角色選擇區塊 ---
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 左邊：正義方陣容
+                        // 左邊：正義方選項
                         Expanded(
-                          child: _buildTeamDetail(
-                            context, 
-                            "正義方", // (1) 改文字
-                            rules['good']!, 
-                            Colors.blueAccent, 
-                            isEvilTeam: false
+                          child: Card(
+                            color: Colors.blue.withOpacity(0.1),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  _buildRoleCheckbox(context, Role.percival, "派西維爾", Colors.blueAccent),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
-                        Container(width: 1, height: 100, color: Colors.white12),
-                        // 右邊：邪惡方陣容
+                        const SizedBox(width: 10),
+                        // 右邊：邪惡方選項
                         Expanded(
-                          child: _buildTeamDetail(
-                            context, 
-                            "邪惡方", // (1) 改文字
-                            rules['evil']!, 
-                            Colors.redAccent, 
-                            isEvilTeam: true
+                          child: Card(
+                            color: Colors.red.withOpacity(0.1),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Column(
+                                children: [
+                                  _buildRoleCheckbox(context, Role.morgana, "莫甘娜", Colors.redAccent),
+                                  _buildRoleCheckbox(context, Role.mordred, "莫德雷德", Colors.redAccent),
+                                  _buildRoleCheckbox(context, Role.oberon, "奧伯倫", Colors.redAccent),
+                                ],
+                              ),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
+
+                    // --- 3. 派西維爾警告文字 (條件滿足時才出現) ---
+                    if (showPercivalWarning)
+                      SizedBox(
+                        height: 30,
+                        child: Row(
+                          children: const[
+                            Icon(Icons.info_outline, color: Colors.orange, size: 16),
+                            SizedBox(width: 5),
+                            Expanded(
+                              child: Text(
+                                "選擇派西維爾必須至少選擇莫甘娜或莫德雷德其中一個",
+                                style: TextStyle(color: Colors.orange, fontSize: 13),
+                              ),
+                            ),
+                          ],
+                        )
+                      )
+                    else
+                      const SizedBox(height: 30),
+
+                    // --- 4. 湖中女神 ---
+                    if (gameProvider.playerCount >= 7) ...[
+                      SwitchListTile(
+                        title: Text(
+                          "3. 是否要加入「湖中女神」",
+                          style: TextStyle(
+                            fontSize: mainFontSize, 
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold
+                          ),
+                        ),
+                        value: gameProvider.hasLakeLady,
+                        activeColor: Colors.amber,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 2),
+                        onChanged: (val) => gameProvider.toggleLakeLady(val),
+                      ),
+                    ],
+                  ],
+                ) 
+              )
             ),
-          ),
-          
-          const SizedBox(height: 10),
-
-          // --- 2. 角色選擇區塊 ---
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 左邊：正義方選項
-              Expanded(
-                child: Card(
-                  color: Colors.blue.withOpacity(0.1),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        _buildRoleCheckbox(context, Role.percival, "派西維爾", Colors.blueAccent),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              // 右邊：邪惡方選項
-              Expanded(
-                child: Card(
-                  color: Colors.red.withOpacity(0.1),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        _buildRoleCheckbox(context, Role.morgana, "莫甘娜", Colors.redAccent),
-                        _buildRoleCheckbox(context, Role.mordred, "莫德雷德", Colors.redAccent),
-                        _buildRoleCheckbox(context, Role.oberon, "奧伯倫", Colors.redAccent),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // --- 3. 派西維爾警告文字 (條件滿足時才出現) ---
-          if (showPercivalWarning) // (4) 邏輯修正
             Padding(
-              padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-              child: Row(
-                children: const [
-                  Icon(Icons.info_outline, color: Colors.orange, size: 16),
-                  SizedBox(width: 5),
-                  Expanded(
-                    child: Text(
-                      "選擇派西維爾必須至少選擇莫甘娜或莫德雷德其中一個",
-                      style: TextStyle(color: Colors.orange, fontSize: 13),
-                    ),
+              padding: const EdgeInsets.all(20.0), 
+              child: SizedBox(
+                height: 50,
+                width: 150,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.amber,
+                    foregroundColor: Colors.black,
+                    //shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
-                ],
+                  onPressed: () {
+                    String? error = gameProvider.validateSetup();
+                    if (error != null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text(error), backgroundColor: Colors.red),
+                      );
+                    } else {
+                      // 1. 分配角色
+                      gameProvider.assignRoles();
+                      // 2. 跳轉到「選國王轉盤」
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const KingSelectionScreen()),
+                      );
+                    }
+                  },
+                  child: const Text("下一步", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                ),
               ),
-            ),
-
-          const SizedBox(height: 10),
-
-          // --- 4. 湖中女神 ---
-          if (gameProvider.playerCount >= 7) ...[
-             SwitchListTile(
-               title: Text(
-                 "加入「湖中女神」",
-                 style: TextStyle(fontSize: mainFontSize, color: Colors.white), // (5) 字體大小統一
-               ),
-               value: gameProvider.hasLakeLady,
-               activeColor: Colors.amber,
-               contentPadding: const EdgeInsets.symmetric(horizontal: 4),
-               onChanged: (val) => gameProvider.toggleLakeLady(val),
-             ),
-             const SizedBox(height: 10),
+            )
           ],
-
-          // --- 5. 開始按鈕 ---
-          SizedBox(
-            height: 55,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.amber,
-                foregroundColor: Colors.black,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-              onPressed: () {
-                String? error = gameProvider.validateSetup();
-                if (error != null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(error), backgroundColor: Colors.red),
-                  );
-                } else {
-                  // 1. 分配角色
-                  gameProvider.assignRoles();
-
-                  // 2. 改為跳轉到「選國王轉盤」
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const KingSelectionScreen()),
-                  );
-                }
-              },
-              child: const Text("下一步", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-            ),
-          ),
-          const SizedBox(height: 40),
-        ],
+        ),
       ),
     );
   }

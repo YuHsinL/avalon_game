@@ -89,18 +89,17 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
 
     String statusText;
     if (_isSpinning) {
-      statusText = "正在選出第一任國王...";
+      statusText = "正在選出第一任國王...\n";
     } else {
       // 國王號碼 (1-based)
       int kingId = _highlightIndex + 1;
-      statusText = "第一任國王為 $kingId 號玩家";
-
+      statusText = "第一任國王為 $kingId 號玩家\n";
       // 如果有湖中女神，計算女神是誰 (國王的前一位)
       if (gameProvider.hasLakeLady) {
         // 邏輯：(國王Index - 1 + 總人數) % 總人數
         int ladyIndex = (_highlightIndex - 1 + playerCount) % playerCount;
         int ladyId = ladyIndex + 1;
-        statusText += "\n第一位湖中女神為 $ladyId 號玩家";
+        statusText += "第一位湖中女神為 $ladyId 號玩家";
       }
     }
 
@@ -113,9 +112,9 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
       ),
       body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 50),
             
             // 狀態文字顯示
             Text(
@@ -181,7 +180,7 @@ class _KingSelectionScreenState extends State<KingSelectionScreen> {
               ),
             ),
 
-            const SizedBox(height: 50),
+            const SizedBox(height: 80),
 
             // 前往角色分配按鈕 (只在停止後顯示)
             if (!_isSpinning)
