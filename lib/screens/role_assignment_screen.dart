@@ -108,7 +108,7 @@ class _RoleAssignmentScreenState extends State<RoleAssignmentScreen> {
                 },
                 child: Text(
                   _isCardFlipped 
-                    ? (_currentIndex == players.length - 1 ? "我知道了，開始遊戲" : "隱藏身份 (傳給下一位)") 
+                    ? (_currentIndex == players.length - 1 ? "我知道了，開始遊戲" : "隱藏身份並傳給下一位") 
                     : "點擊查看身份",
                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),

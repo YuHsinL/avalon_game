@@ -225,7 +225,7 @@ class _GameMainScreenState extends State<GameMainScreen> {
         children: [
           const SizedBox(height: 30),
           Text(
-            "請將手機交給出任務的第 ${_currentVoterIndex + 1} 位玩家",
+            "請將手機交給\n出任務的第 ${_currentVoterIndex + 1} 位玩家",
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.white),
           ),

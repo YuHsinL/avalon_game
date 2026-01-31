@@ -92,7 +92,7 @@ class GameProvider with ChangeNotifier {
       bool hasMorgana = selectedRoles.contains(Role.morgana);
       bool hasMordred = selectedRoles.contains(Role.mordred);
       if (!hasMorgana && !hasMordred) {
-        return "加入派西維爾時，必須至少加入莫甘娜或莫德雷德其中之一！";
+        return "加入派西維爾必須至少加入莫甘娜或莫德雷德其中之一！";
       }
     }
     return null;

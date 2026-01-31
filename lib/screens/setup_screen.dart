@@ -182,8 +182,8 @@ class SetupScreen extends StatelessWidget {
                             SizedBox(width: 5),
                             Expanded(
                               child: Text(
-                                "選擇派西維爾必須至少選擇莫甘娜或莫德雷德其中一個",
-                                style: TextStyle(color: Colors.orange, fontSize: 13),
+                                "加入派西維爾必須至少加入莫甘娜或莫德雷德其中之一",
+                                style: TextStyle(color: Colors.orange, fontSize: 12),
                               ),
                             ),
                           ],
@@ -196,16 +196,17 @@ class SetupScreen extends StatelessWidget {
                     if (gameProvider.playerCount >= 7) ...[
                       SwitchListTile(
                         title: Text(
-                          "3. 是否要加入「湖中女神」",
+                          "加入「湖中女神」",
                           style: TextStyle(
-                            fontSize: mainFontSize, 
+                            fontSize: 16, 
                             color: Colors.white,
                             fontWeight: FontWeight.bold
                           ),
                         ),
                         value: gameProvider.hasLakeLady,
                         activeColor: Colors.amber,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 2),
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 5),
                         onChanged: (val) => gameProvider.toggleLakeLady(val),
                       ),
                     ],
@@ -272,7 +273,6 @@ class SetupScreen extends StatelessWidget {
 
     return Column(
       children: [
-        // (1) 格式修改：正方：5人
         Text(
           "$label：$totalCount人",
           style: TextStyle(fontSize: mainFontSize, fontWeight: FontWeight.bold, color: color),
@@ -281,17 +281,17 @@ class SetupScreen extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Text(isEvilTeam ? "刺客 x 1" : "梅林 x 1", style: const TextStyle(color: Colors.white, fontSize: 14)), // (3) 改成白色
+            Text(isEvilTeam ? "刺客 x 1" : "梅林 x 1", style: const TextStyle(color: Colors.white, fontSize: 14)),
             
             ...specialRoles.map((role) => Text(
               "${_getRoleName(role)} x 1",
-              style: const TextStyle(color: Colors.white, fontSize: 14), // (3) 改成白色
+              style: const TextStyle(color: Colors.white, fontSize: 14),
             )),
 
             if (fillerCount > 0)
               Text(
                 "${isEvilTeam ? '莫德雷德的爪牙' : '亞瑟的忠臣'} x $fillerCount",
-                style: const TextStyle(color: Colors.white, fontSize: 14), // (3) 改成白色
+                style: const TextStyle(color: Colors.white, fontSize: 14), 
               ),
           ],
         )
